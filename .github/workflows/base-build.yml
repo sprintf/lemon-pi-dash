@@ -1,0 +1,38 @@
+
+name: Base Reusable Kotlin Application
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Protos
+        uses: actions/checkout@v2
+        with:
+          repository: sprintf/lemon-pi-protos
+          path: './protos'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Relink protos
+        run: |
+          rm src/main/proto/*.proto && \
+          ln -s `pwd`/protos/lemon-pi.proto src/main/proto/lemon-pi.proto && \
+          ln -s `pwd`/protos/meringue-admin.proto src/main/proto/meringue-admin.proto
+      - name: Validate Gradle
+        uses: gradle/wrapper-validation-action@v1
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+      - name: Upload Jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: bootJar
+          path: build/libs/*.jar

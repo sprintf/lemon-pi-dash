@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        const fetchTime = async () => {
+            const response = await fetch('/time');
+            const myJson = await response.json(); //extract JSON from the http response
+            // do something with myJson
+            console.log(myJson)
+            document.getElementById("time").innerText = myJson.hour + ":" + myJson.minute + ":" + myJson.second
+        }
+    </script>
+</head>
+<body onload="setInterval(fetchTime, 1000)">
+   <div id="time"></div>
+</body>
+</html>
