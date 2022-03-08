@@ -17,9 +17,14 @@ class WebController {
         return "landing"
     }
 
-    @GetMapping("/dash")
+    @GetMapping("/video_overlay")
     fun dash(model: Model): String {
-        return "dash"
+        return "video_overlay"
+    }
+
+    @GetMapping("/config")
+    fun config(model: Model): String {
+        return "config"
     }
 
 }
