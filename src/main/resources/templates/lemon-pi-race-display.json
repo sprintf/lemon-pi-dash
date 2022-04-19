@@ -1,0 +1,123 @@
+{
+  "allowHttpBackend": false,
+  "backendCommand": "",
+  "backendFolderName": "",
+  "certificateExceptions": [],
+  "extensionViews": [
+    {
+      "channelId": "265737932",
+      "configurationAnchor": "video_overlay",
+      "displayChannelName": "normtronix",
+      "features": {
+        "isBitsEnabled": false,
+        "isChatEnabled": false,
+        "isSubscriptionStatusAvailable": false
+      },
+      "frameSize": {
+        "width": 1280,
+        "height": 720
+      },
+      "id": "1",
+      "isPopout": false,
+      "label": "overlay streamer",
+      "linked": false,
+      "linkedUserId": "",
+      "orientation": "Portrait",
+      "type": "video_overlay",
+      "viewerType": "Logged-Out Viewer"
+    },
+    {
+      "channelId": "265737932",
+      "configurationAnchor": "video_overlay",
+      "displayChannelName": "normtronix",
+      "features": {
+        "isBitsEnabled": false,
+        "isChatEnabled": false,
+        "isSubscriptionStatusAvailable": false
+      },
+      "frameSize": {
+        "width": 1280,
+        "height": 720
+      },
+      "id": "2",
+      "isPopout": false,
+      "label": "",
+      "linked": true,
+      "linkedUserId": "265737932",
+      "orientation": "Portrait",
+      "type": "config",
+      "viewerType": "Broadcaster"
+    }
+  ],
+  "manifest": {
+    "anchor": "video_overlay",
+    "assetUrls": [],
+    "authorName": "Normtronix",
+    "bitsEnabled": false,
+    "canInstall": true,
+    "configUrl": "http://localhost:8080/config",
+    "configurationLocation": "none",
+    "description": "Fetches live race position information from RaceMonitor and displays the cars position in a video overlay",
+    "eulaTosUrl": "",
+    "hasChatSupport": false,
+    "iconUrl": "",
+    "iconUrls": {},
+    "id": "v57v11e4u9mwsci9yhofvwkssu2sxk",
+    "installationCount": -42,
+    "liveConfigUrl": "",
+    "name": "lemon-pi-race-display",
+    "panelHeight": 0,
+    "privacyPolicyUrl": "",
+    "requestIdentityLink": false,
+    "requiredBroadcasterAbilities": [],
+    "screenshotUrls": [],
+    "sku": "",
+    "state": "Testing",
+    "subscriptionsSupportLevel": "none",
+    "summary": "Displays race position information from RaceMonitor for IRL streamers in races",
+    "supportEmail": "support@normingtons.org",
+    "vendorCode": "",
+    "version": "0.0.5",
+    "viewerSummary": "",
+    "viewerUrl": "",
+    "viewerUrls": {
+      "videoOverlay": "http://localhost:8080/video_overlay",
+      "component": "http://localhost:8080/test"
+    },
+    "views": {
+      "videoOverlay": {
+        "viewerUrl": "http://localhost:8080/video_overlay",
+        "canLinkExternalContent": false
+      },
+      "component": {
+        "viewerUrl": "http://localhost:8080/test",
+        "aspectWidth": 0,
+        "aspectHeight": 0,
+        "aspectRatioX": 1000,
+        "aspectRatioY": 100,
+        "scalePixels": 1024,
+        "targetHeight": 1200,
+        "size": 0,
+        "zoom": false,
+        "zoomPixels": 0,
+        "canLinkExternalContent": false,
+        "autoScale": true
+      },
+      "config": {
+        "viewerUrl": "http://localhost:8080/config",
+        "canLinkExternalContent": true
+      }
+    },
+    "whitelistedConfigUrls": [
+      "https://dash-srmt5evhka-uc.a.run.app/"
+    ],
+    "whitelistedPanelUrls": [
+      "https://dash-srmt5evhka-uc.a.run.app/"
+    ]
+  },
+  "frontendCommand": "",
+  "frontendFolderName": "",
+  "name": "lemon-pi-race-display",
+  "usingRandomFrontendHostingPort": false,
+  "version": 3
+}
