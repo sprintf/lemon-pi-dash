@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @Configuration
 class WebConfiguration: WebMvcConfigurer {
 
+    // todo : update this so that we just allow requests from localhost and twitch
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**").allowedMethods("*")
     }
