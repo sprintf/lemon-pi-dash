@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-    <title>Something or other</title>
+    <title>Live Racing Display</title>
     <body>
     <script src="jquery-3.6.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
                 <td class="dash-subtitle">overall</td>
                 <td class="dash-subtitle">last lap</td>
                 <td class="dash-subtitle">fast lap</td>
-                <td class="dash-subtitle">To: #<span id="lpi-carAhead">183</span></td>
+                <td class="dash-subtitle">To: #<span id="lpi-carAhead">-</span></td>
                 <td class="dash-subtitle">laps</td>
             </tr>
         </table>
@@ -134,11 +134,7 @@
                 // todo : driver messages
                 // todo : engine temp
                 // todo : fuel status
-                //        amnd disable / enable of fields
-            }
-
-            stream.onerror = function(error) {
-                window.Twitch.ext.rig.log("got SSE error " + JSON.stringify(error))
+                // todo :  disable / enable of fields (e.g. driver message etc)
             }
         }
     </script>
