@@ -28,7 +28,7 @@
     },
     {
       "channelId": "265737932",
-      "configurationAnchor": "video_overlay",
+      "configurationAnchor": "video_overlay.htnl",
       "displayChannelName": "normtronix",
       "features": {
         "isBitsEnabled": false,
@@ -55,7 +55,7 @@
     "authorName": "Normtronix",
     "bitsEnabled": false,
     "canInstall": true,
-    "configUrl": "http://localhost:8080/config",
+    "configUrl": "http://localhost:8080/config.html",
     "configurationLocation": "none",
     "description": "Fetches live race position information from RaceMonitor and displays the cars position in a video overlay",
     "eulaTosUrl": "",
@@ -77,34 +77,19 @@
     "summary": "Displays race position information from RaceMonitor for IRL streamers in races",
     "supportEmail": "support@normingtons.org",
     "vendorCode": "",
-    "version": "0.0.5",
+    "version": "0.0.7",
     "viewerSummary": "",
     "viewerUrl": "",
     "viewerUrls": {
-      "videoOverlay": "http://localhost:8080/video_overlay",
-      "component": "http://localhost:8080/test"
+      "videoOverlay": "http://localhost:8080/video_overlay.html"
     },
     "views": {
       "videoOverlay": {
-        "viewerUrl": "http://localhost:8080/video_overlay",
+        "viewerUrl": "http://localhost:8080/video_overlay.html",
         "canLinkExternalContent": false
       },
-      "component": {
-        "viewerUrl": "http://localhost:8080/test",
-        "aspectWidth": 0,
-        "aspectHeight": 0,
-        "aspectRatioX": 1000,
-        "aspectRatioY": 100,
-        "scalePixels": 1024,
-        "targetHeight": 1200,
-        "size": 0,
-        "zoom": false,
-        "zoomPixels": 0,
-        "canLinkExternalContent": false,
-        "autoScale": true
-      },
       "config": {
-        "viewerUrl": "http://localhost:8080/config",
+        "viewerUrl": "http://localhost:8080/config.html",
         "canLinkExternalContent": true
       }
     },
