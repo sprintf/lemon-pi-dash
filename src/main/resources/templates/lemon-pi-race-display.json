@@ -28,7 +28,7 @@
     },
     {
       "channelId": "265737932",
-      "configurationAnchor": "video_overlay.htnl",
+      "configurationAnchor": "video_overlay",
       "displayChannelName": "normtronix",
       "features": {
         "isBitsEnabled": false,
@@ -47,6 +47,28 @@
       "orientation": "Portrait",
       "type": "config",
       "viewerType": "Broadcaster"
+    },
+    {
+      "channelId": "265737932",
+      "configurationAnchor": "video_overlay",
+      "displayChannelName": "normtronix",
+      "features": {
+        "isBitsEnabled": false,
+        "isChatEnabled": false,
+        "isSubscriptionStatusAvailable": false
+      },
+      "frameSize": {
+        "width": 1280,
+        "height": 720
+      },
+      "id": "3",
+      "isPopout": false,
+      "label": "",
+      "linked": false,
+      "linkedUserId": "",
+      "orientation": "Portrait",
+      "type": "video_overlay",
+      "viewerType": "Logged-In Viewer"
     }
   ],
   "manifest": {
@@ -77,7 +99,7 @@
     "summary": "Displays race position information from RaceMonitor for IRL streamers in races",
     "supportEmail": "support@normingtons.org",
     "vendorCode": "",
-    "version": "0.0.7",
+    "version": "0.0.9",
     "viewerSummary": "",
     "viewerUrl": "",
     "viewerUrls": {

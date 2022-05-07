@@ -32,11 +32,31 @@ const getTrackAndCar = async() => {
     }
 }
 
+
+
 window.Twitch.ext.onContext(function(deets, fields) {
     if (fields.includes("hlsLatencyBroadcaster")) {
         videoLag = deets.hlsLatencyBroadcaster * 1000
+    } else if (fields.includes("isFullScreen")) {
+        if (deets.isFullScreen) {
+            changeFontSizes(14, 28, 12);
+        } else {
+            changeFontSizes(12, 18, 10);
+        }
+    } else if (fields.includes("isTheatreMode")) {
+        if (deets.isTheatreMode) {
+            changeFontSizes(14, 28, 12);
+        } else {
+            changeFontSizes(12, 18, 10);
+        }
     }
 });
+
+function changeFontSizes(headingSize, bigSize, smallSize) {
+    $(".dash-heading").css("font-size", headingSize + "pt")
+    $(".dash-big").css("font-size", bigSize + "pt")
+    $(".dash-subtitle").css("font-size", smallSize + "pt")
+}
 
 function chooseColor(raceFlagStatus) {
     switch (raceFlagStatus) {
@@ -87,10 +107,5 @@ const streamBackendData = async (trackCode, carNumber) => {
             }
         }, videoLag, payload)
 
-        // todo : need to wipe fields that may not get send
-        // todo : driver messages
-        // todo : engine temp
-        // todo : fuel status
-        // todo :  disable / enable of fields (e.g. driver message etc)
     }
 }

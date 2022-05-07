@@ -7,10 +7,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.util.stream.Collectors
+import javax.validation.constraints.Size
 
 
 data class TimeResponse(val hour: Int, val minute: Int, val second: Int)
@@ -46,13 +48,6 @@ data class TrackAndCar(
     val carNumber: String,
 )
 
-data class RaceData(
-    val raceId: String,
-    val teamName: String,
-    var driverName: String,
-    val trackAndCar: TrackAndCar,
-)
-
 data class LiveRace(
     val raceId: String,
     val trackCode: String,
@@ -60,11 +55,22 @@ data class LiveRace(
 )
 
 data class ConfigData(
+    @Size(min=4, max=15)
     val channelId: String,
+
+    @Size(min=4, max=10)
     val trackCode: String,
+
+    @Size(min=0, max=25)
     val teamName: String,
+
+    @Size(min=1, max=3)
     val carNumber: String,
+
+    @Size(min=0, max=25)
     val driverName: String,
+
+    @Size(min=0, max=35)
     val raceName: String,
 )
 
@@ -125,8 +131,8 @@ class RestController {
     }
 
     @PostMapping("/configure")
-    fun configure(@RequestBody request: ConfigData) {
-        // validate everything
+    fun configure(@RequestBody @Validated request: ConfigData) {
+        // todo validate everything
         // find the track Code (or have then pass it in)
         // create the channelAssociation
         val trackAndCar = TrackAndCar(request.trackCode, request.carNumber)
