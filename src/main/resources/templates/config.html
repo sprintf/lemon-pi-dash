@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <title>Dash Config Page</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+<link href="config_styles.css" rel="stylesheet">
 <body>
 <div id="currentRaces">
+    <h2>Current Races:</h2>
     <table id="currentRaceTable">
         <tr id="seedRow">
             <td></td>
@@ -11,8 +14,10 @@
         </tr>
     </table>
 </div>
+<br><br>
 <div>
-    <br><br>
+    <h2>Your Race Stream Details:</h2>
+    <br>
     <label for="trackCode">    Track Id:</label><input type="text" id="trackCode" name="raceId"><br><br>
     <label for="carNumber">Car Number:</label><input list="carNumberPicker" id="carNumber" name="carNumber"><br><br>
     <datalist id="carNumberPicker">
@@ -23,6 +28,8 @@
     <input type="text" id="driverName" name="driverName"> (For multi-driver races)<br><br>
 
     <button id="submit">submit</button>
+    <br><br>
+    <div id="confirm" class="confirm"></div>
 </div>
 </body>
 <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>

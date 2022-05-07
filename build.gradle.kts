@@ -36,6 +36,8 @@ dependencies {
 	implementation("io.grpc:grpc-protobuf:${grpcVersion}")
 	implementation("io.grpc:grpc-stub:${grpcVersion}")
 	implementation("io.grpc:grpc-kotlin-stub:0.1.5")
+	implementation("jakarta.validation:jakarta.validation-api")
+	implementation("org.hibernate.validator:hibernate-validator")
 
 	runtimeOnly("io.grpc:grpc-okhttp:${grpcVersion}")
 

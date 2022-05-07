@@ -80,8 +80,7 @@ const handleSubmit = async function () {
         },
         body: JSON.stringify(postJson),
     });
-    await response.json()
-    window.Twitch.ext.rig.log("got status  " + response.status)
-
-    // todo : paint an OK if it stuck
+    await response.json().then(
+        $('#confirm').html('Good To Go!')
+    )
 }
