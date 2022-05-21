@@ -24,6 +24,8 @@ import java.util.concurrent.Executor
 @Service
 class MeringueConnector {
 
+    private var bearerToken: String? = null
+
     @Value("\${meringueHost}")
     lateinit var meringueHost:String
 
@@ -38,6 +40,7 @@ class MeringueConnector {
 
     var trackChannelMap:MutableMap<String, GrpcChannel> = mutableMapOf()
     var carTrackSharedFlow:MutableMap<String, MutableStateFlow<CarData.CarDataResponse>> = mutableMapOf()
+    var carPositionSharedFlow:MutableMap<String, MutableSharedFlow<CarData.CarPositionDataResponse>> = mutableMapOf()
 
     // hold a connection to the meringue stuff
     // todo : cache last known value and refresh after ... say 30s
@@ -49,7 +52,7 @@ class MeringueConnector {
         }.build())
     }
 
-    suspend fun streamData(track: String, car: String) : StateFlow<CarData.CarDataResponse> {
+    suspend fun streamCarData(track: String, car: String) : StateFlow<CarData.CarDataResponse> {
         // mild bug that two cars at different tracks synchronize together. good problem if it shows up
         val key = "$track:$car"
 
@@ -80,18 +83,30 @@ class MeringueConnector {
 
     }
 
+    suspend fun streamCarPositionData(track: String): Flow<CarData.CarPositionDataResponse> {
+        val stub = CarDataServiceGrpcKt.CarDataServiceCoroutineStub(getGrpcChannelForTrack(track))
+        return stub.streamCarPositionsAtTrack(CarData.CarPositionDataRequest.newBuilder().apply {
+            this.trackCode = track
+        }.build())
+    }
+
     suspend fun getRaceData(): MeringueAdmin.RaceDataConnectionsResponse {
         val channel = getGrpcChannelForTrack("all")
-        // todo : stop this from always authing ... store token locally and re-use
-        log.info("authenticating via admin api")
         val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
-        val authRequest = MeringueAdmin.AuthRequest.newBuilder()
-            .setUsername(adminUsername)
-            .setPassword(adminPassword)
-            .build()
-        val authResponse = stub.auth(authRequest)
-        log.info("authenticated ok")
-        return stub.withCallCredentials(BearerToken(authResponse.bearerToken)).listRaceDataConnections(Empty.getDefaultInstance())
+        if (bearerToken == null) {
+            log.info("authenticating via admin api")
+            val authRequest = MeringueAdmin.AuthRequest.newBuilder()
+                .setUsername(adminUsername)
+                .setPassword(adminPassword)
+                .build()
+            val authResponse = stub.auth(authRequest)
+            log.info("authenticated ok")
+            this.bearerToken = authResponse.bearerToken
+        }
+        this.bearerToken?.let {
+            return stub.withCallCredentials(BearerToken(it)).listRaceDataConnections(Empty.getDefaultInstance())
+        }
+        throw RuntimeException("bad shizzle")
     }
 
     suspend fun getRaceField(track: String) : CarData.RaceFieldResponse {

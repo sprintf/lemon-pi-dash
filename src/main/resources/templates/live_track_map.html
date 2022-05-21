@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #map {
+            height: 100%;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+   <div id="map"></div>
+</body>
+<script src="common.js"></script>
+<script type="text/javascript" th:inline="javascript">
+    let trackCode = /*[[${trackCode}]]*/ "test1"
+</script>
+<script src="live_track_map.js"></script>
+<script async defer th:src="@{https://maps.googleapis.com/maps/api/js(key=${maps_api_key},callback=initMap)}"></script>
+</html>

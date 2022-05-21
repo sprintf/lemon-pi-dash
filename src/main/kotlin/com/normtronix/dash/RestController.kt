@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -41,6 +42,15 @@ data class CarDataResponse(
     val coolantTemp: Int,
     val fuelRemainingPercent: Int,
     val driverName: String,
+)
+
+data class CarPositionResponse(
+    val carNumber: String,
+    val lat: Float,
+    val long: Float,
+    val heading: Int,
+    val speedMph: Int,
+    val timestamp: Long,
 )
 
 data class TrackAndCar(
@@ -131,8 +141,19 @@ class RestController {
     }
 
     @PostMapping("/configure")
-    fun configure(@RequestBody @Validated request: ConfigData) {
-        // todo validate everything
+    suspend fun configure(@RequestBody @Validated request: ConfigData) {
+        // make sure the track code is valid
+        connector.getRaceData().let {
+            if (it.responseList.filter { it.trackCode == request.trackCode }.isEmpty()) {
+                throw BadRequestException("invalid track")
+            }
+        }
+        // make sure the selected car is at this track
+        connector.getRaceField(request.trackCode).let {
+            if (it.participantsList.filter { it.carNumber == request.carNumber }.isEmpty()) {
+                throw BadRequestException("invalid car")
+            }
+        }
         // find the track Code (or have then pass it in)
         // create the channelAssociation
         val trackAndCar = TrackAndCar(request.trackCode, request.carNumber)
@@ -164,19 +185,27 @@ class RestController {
     @GetMapping("/cardata/{track}/{car}")
     suspend fun cardata(@PathVariable track: String,
                 @PathVariable car: String): CarDataResponse {
-        return buildResponse(connector.getData(track, car), driverAssociation[TrackAndCar(track, car)])
+        return buildCarDataResponse(connector.getData(track, car), driverAssociation[TrackAndCar(track, car)])
     }
 
     @GetMapping("/cardatastream/{track}/{car}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     suspend fun cardataStream(@PathVariable track: String,
                               @PathVariable car: String): Flow<CarDataResponse> {
 
-        return connector.streamData(track, car).map {
-            buildResponse(it, driverAssociation[TrackAndCar(track, car)])
+        return connector.streamCarData(track, car).map {
+            buildCarDataResponse(it, driverAssociation[TrackAndCar(track, car)])
         }
     }
 
-    private fun buildResponse(it: CarData.CarDataResponse, driverName: String?): CarDataResponse {
+    @GetMapping("/trackdatastream/{track}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    suspend fun trackdataStream(@PathVariable track: String): Flow<CarPositionResponse> {
+
+        return connector.streamCarPositionData(track).map {
+            buildCarPositionResponse(it)
+        }
+    }
+
+    private fun buildCarDataResponse(it: CarData.CarDataResponse, driverName: String?): CarDataResponse {
         return CarDataResponse(
             carNumber = it.carNumber,
             timestamp = it.timestamp,
@@ -194,6 +223,20 @@ class RestController {
             driverName = driverName?:"-"
         )
     }
+
+    private fun buildCarPositionResponse(it: CarData.CarPositionDataResponse): CarPositionResponse {
+        return CarPositionResponse(
+            carNumber = it.carNumber,
+            lat = it.position.lat,
+            long = it.position.long,
+            heading = it.position.heading,
+            speedMph = it.position.speedMph,
+            timestamp = it.position.gpsTimestamp
+        )
+    }
+
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "Bad Request")
+    class BadRequestException(msg: String) : Exception(msg)
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(RestController::class.java)
