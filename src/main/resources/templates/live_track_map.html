@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Lemon Pi Live Track Map</title>
     <style>
         #map {
             height: 100%;
@@ -20,6 +20,8 @@
 <script src="common.js"></script>
 <script type="text/javascript" th:inline="javascript">
     let trackCode = /*[[${trackCode}]]*/ "test1"
+    let mapLat = /*[[${lat}]]*/ -56.5
+    let mapLong = /*[[${long}]]*/ -122.2
 </script>
 <script src="live_track_map.js"></script>
 <script async defer th:src="@{https://maps.googleapis.com/maps/api/js(key=${maps_api_key},callback=initMap)}"></script>

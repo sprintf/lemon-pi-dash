@@ -1,15 +1,20 @@
 
 let map;
 let carMarkers = {}
+let carMarkerTimestamps = {}
 
 function initMap() {
     console.log("map drawing for track " + trackCode)
     map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 37.926223, lng: -122.295029 },
-        zoom: 16,
+        center: { lat: mapLat, lng: mapLong },
+        mapTypeId: 'satellite',
+        zoom: 17,
     });
     console.log("map drawn")
     streamBackendData(trackCode)
+    setInterval(function(){
+        markOfflineCars()
+    }, 30000)
 }
 
 window.initMap = initMap;
@@ -19,9 +24,9 @@ const streamBackendData = async (trackCode) => {
     stream.onmessage = function(event) {
         const payload = JSON.parse(event.data)
 
-        payload["speedMph"]
-        payload["timestamp"]
-        payload["heading"]
+        //payload["speedMph"]
+        //payload["timestamp"]
+        //payload["heading"]
         let carNum = payload["carNumber"]
 
         if (carNum in carMarkers) {
@@ -29,6 +34,14 @@ const streamBackendData = async (trackCode) => {
             let icon = carMarkers[carNum].getIcon()
             icon.rotation = payload["heading"]
             carMarkers[carNum].setIcon(icon)
+            let label = carMarkers[carNum].getLabel()
+            if ("speedMph" in payload) {
+                label.text = payload["speedMph"].toString()
+            } else {
+                label.text = carNum
+            }
+            carMarkers[carNum].setLabel(label)
+            carMarkerTimestamps[carNum] = payload["timestamp"]
         } else {
             const svgMarker = {
                 path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
@@ -49,8 +62,9 @@ const streamBackendData = async (trackCode) => {
                     fontWeight: "bold"
                 },
             });
+            // add the timestamp from gps so we can tellwhen they go offline
+            carMarkerTimestamps[carNum] = payload["timestamp"]
         }
-
     }
 }
 
@@ -64,8 +78,17 @@ function getCarColor(carNum) {
     }
 }
 
-// todo : improve display : show speed
-// make map api key non nickable : use a key that only works from dash
-// gray out after 30s
-// find out why pi stopped sending overnight
+function markOfflineCars() {
+    for (const key of Object.keys(carMarkerTimestamps)) {
+        let value = carMarkerTimestamps[key]
+        let nowSeconds = Date.now() / 1000
+        if (nowSeconds - value > 30) {
+            // show the car number in black
+            let label = carMarkers[key].getLabel()
+            label.text = "<<offline>>"
+            carMarkers[key].setLabel(label)
+        }
+    }
+}
+
 
