@@ -12,6 +12,7 @@ import org.springframework.web.servlet.ModelAndView
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletResponse
 
+
 data class LoginData(
     val username: String,
     val password: String,
@@ -58,15 +59,20 @@ class WebController {
     }
 
     @PostMapping("/doLogin")
-    suspend fun login(@ModelAttribute request: LoginData, response: HttpServletResponse, model: Model): String {
+    suspend fun login(@ModelAttribute request: LoginData, response: HttpServletResponse, model: Model): ModelAndView {
         log.info("login request")
         if (request.username == adminCreds.adminUsername &&
                 request.password == adminCreds.adminPassword) {
             response.addCookie(Cookie("sessionId", authService.createTokenForUser(request.username)))
-            model.addAttribute("tracks", meringue.listTracksAndRaces());
-            return "/admin/track_list.html"
+            return ModelAndView("redirect:/admin/track_list", ModelMap())
         }
-        return "auth"
+        return ModelAndView("redirect:/auth", ModelMap())
+    }
+
+    @GetMapping("/admin/track_list")
+    suspend fun showTrackList(model: Model): String {
+        model.addAttribute("tracks", meringue.listTracksAndRaces())
+        return "/admin/track_list"
     }
 
     @GetMapping("/admin/choose_track")
@@ -77,32 +83,30 @@ class WebController {
             model.addAttribute("trackName", trackName)
             model.addAttribute("trackCode", trackCode)
             model.addAttribute("races", meringue.getLiveRaces(trackName!!).racesList)
-            return "admin/active_races.html"
+            return "/admin/active_races.html"
         }
-        return "error.html"
+        return "error"
     }
 
     @GetMapping("/admin/connect")
     suspend fun chooseTrack(@RequestParam(name="trackCode") trackCode: String,
                             @RequestParam(name="provider") provider: String,
                             @RequestParam(name="providerId") providerId: String,
-                            model: Model): String {
+                            model: Model): ModelAndView {
         log.info("called connect with $trackCode $provider $providerId")
         if (trackLoader.isValidTrackCode(trackCode)) {
             meringue.connectToRace(trackCode, provider, providerId)
-            model.addAttribute("tracks", meringue.listTracksAndRaces());
-            return "/admin/track_list.html"
+            return ModelAndView("redirect:/admin/track_list", ModelMap())
         }
-        return "error.html"
+        return ModelAndView("error")
     }
 
     @GetMapping("/admin/disconnect")
     suspend fun disconnectRace(@RequestParam(name="handle") handle:String,
-                               model: Model): String {
+                               model: Model): ModelAndView {
         log.info("called disconnect with $handle")
         meringue.disconnectRace(handle)
-        model.addAttribute("tracks", meringue.listTracksAndRaces());
-        return "/admin/track_list.html"
+        return ModelAndView("redirect:/admin/track_list", ModelMap())
     }
 
     companion object {
