@@ -72,7 +72,7 @@ class WebController {
     @GetMapping("/admin/track_list")
     suspend fun showTrackList(model: Model): String {
         model.addAttribute("tracks", meringue.listTracksAndRaces())
-        return "/admin/track_list.html"
+        return "/admin/track_list"
     }
 
     @GetMapping("/admin/choose_track")
@@ -83,7 +83,7 @@ class WebController {
             model.addAttribute("trackName", trackName)
             model.addAttribute("trackCode", trackCode)
             model.addAttribute("races", meringue.getLiveRaces(trackName!!).racesList)
-            return "/admin/active_races.html"
+            return "/admin/active_races"
         }
         return "error"
     }
