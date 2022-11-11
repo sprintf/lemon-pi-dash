@@ -72,7 +72,7 @@ class WebController {
     @GetMapping("/admin/track_list")
     suspend fun showTrackList(model: Model): String {
         model.addAttribute("tracks", meringue.listTracksAndRaces())
-        return "/admin/track_list"
+        return "/admin/track_list.html"
     }
 
     @GetMapping("/admin/choose_track")
