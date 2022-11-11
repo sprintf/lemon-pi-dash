@@ -27,6 +27,10 @@ class TrackMetaDataLoader {
         return trackCodes.contains(code)
     }
 
+    fun name(code: String): String? {
+        return trackNameMap[code]
+    }
+
     fun validateTrackCode(code: String): Unit {
         if (!trackCodes.contains(code)) {
             throw InvalidTrackCode()
@@ -87,6 +91,7 @@ class TrackMetaDataLoader {
         var radio_sync_coords: String = ""
         var radio_sync_direction: String = ""
         var hidden: Boolean = false
+        var reversed: Boolean = false
     }
 
     companion object {

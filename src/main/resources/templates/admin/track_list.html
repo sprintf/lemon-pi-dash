@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dash Admin Race List</title>
+</head>
+<body>
+  <h1>Lemon-Pi Track List</h1>
+  <table>
+      <thead>
+      <tr>
+          <th> Title </th>
+          <th> Author </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:if="${tracks.empty}">
+          <td colspan="2"> No Tracks Available </td>
+      </tr>
+      <tr th:each="track : ${tracks}">
+          <td><span th:text="${track.trackName}"> Track </span></td>
+          <td>
+              <span th:if="${track.active}">
+                <a th:href="@{/admin/disconnect(handle=${track.handle})}">Disconnect</a>
+              </span>
+              <span th:unless="${track.active}">
+                <a th:href="@{/admin/choose_track(trackCode=${track.trackCode})}">Connect</a>
+              </span>
+          </td>
+          <td>
+              <a th:href="@{/live_track_map(track=${track.trackCode})}" target="_blank"><img src="/map.png" width="64" height="64"></a>
+          </td>
+      </tr>
+      </tbody>
+  </table>
+</body>
+</html>
