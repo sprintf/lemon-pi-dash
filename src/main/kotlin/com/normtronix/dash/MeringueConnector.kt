@@ -5,24 +5,26 @@ import com.normtronix.meringue.AdminServiceGrpcKt
 import com.normtronix.meringue.CarData
 import com.normtronix.meringue.CarDataServiceGrpcKt
 import com.normtronix.meringue.MeringueAdmin
-import io.grpc.CallCredentials
+import io.grpc.*
 import io.grpc.Channel as GrpcChannel
-import io.grpc.Metadata
-import io.grpc.ManagedChannelBuilder
-import io.grpc.Status
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.web.servlet.HandlerExceptionResolver
+import org.springframework.web.servlet.ModelAndView
 import java.util.concurrent.Executor
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 
 @Service
-class MeringueConnector {
+class MeringueConnector : HandlerExceptionResolver {
 
     private var bearerToken: String? = null
 
@@ -32,11 +34,11 @@ class MeringueConnector {
     @Value("\${meringuePort}")
     lateinit var meringuePort:String
 
-    @Value("\${adminUsername}")
-    lateinit var adminUsername:String
+    @Autowired
+    lateinit var adminCreds: AdminCredentialProvider
 
-    @Value("\${adminPassword}")
-    lateinit var adminPassword:String
+    @Autowired
+    lateinit var trackLoader: TrackMetaDataLoader
 
     var trackChannelMap:MutableMap<String, GrpcChannel> = mutableMapOf()
     var carTrackSharedFlow:MutableMap<String, MutableStateFlow<CarData.CarDataResponse>> = mutableMapOf()
@@ -90,23 +92,139 @@ class MeringueConnector {
         }.build())
     }
 
+    suspend fun getLiveRaces(trackName: String) : MeringueAdmin.LiveRaceListResponse {
+        val words = trackName.splitToSequence(" ").map {
+            it.lowercase()
+        }
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            val bldr = MeringueAdmin.SearchTermsRequest.newBuilder()
+            words.forEach { bldr.addTerm(it) }
+            try {
+                return stub.withCallCredentials(BearerToken(it)).findLiveRaces(bldr.build())
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+        throw RuntimeException("bad shizzle")
+    }
+
     suspend fun getRaceData(): MeringueAdmin.RaceDataConnectionsResponse {
         val channel = getGrpcChannelForTrack("all")
         val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                return stub.withCallCredentials(BearerToken(it)).listRaceDataConnections(Empty.getDefaultInstance())
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+        throw RuntimeException("bad shizzle")
+    }
+
+    suspend fun connectToRace(
+        trackCode: String,
+        providerName: String,
+        providerId: String
+    ): MeringueAdmin.RaceDataConnectionResponse {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            val request = MeringueAdmin.ConnectToRaceDataRequest.newBuilder()
+                .setProvider(MeringueAdmin.RaceDataProvider.valueOf(providerName))
+                .setProviderId(providerId)
+                .setTrackCode(trackCode)
+                .build()
+            try {
+                return stub.withCallCredentials(BearerToken(it)).connectToRaceData(request)
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+        throw RuntimeException("bad shizzle")
+    }
+
+    class ReauthNeededException : RuntimeException()
+
+    private fun handleExpiredToken(e: StatusException) {
+        if (e.status == Status.UNAUTHENTICATED) {
+            this.bearerToken = null
+            throw ReauthNeededException()
+        }
+    }
+
+    data class TrackAndRaceStatus(
+        val trackCode: String,
+        val trackName: String,
+        var active: Boolean = false,
+        var handle: String? = null
+    )
+
+    suspend fun listTracksAndRaces(): List<TrackAndRaceStatus> {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            val trackMap =
+                trackLoader.listTracks().associateBy({ it.code }, { TrackAndRaceStatus(it.code, it.name) })
+
+            try {
+                stub.withCallCredentials(BearerToken(it))
+                    .listRaceDataConnections(Empty.getDefaultInstance()).responseList.forEach {
+                    trackMap[it.trackCode]?.apply {
+                        this.active = it.running
+                        this.handle = it.handle
+                    }
+                }
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+
+                log.error("grpc exception", e)
+                throw e
+            }
+
+            return trackMap.toSortedMap().values.toList()
+        }
+        throw RuntimeException("bad shizzle")
+    }
+
+    suspend fun disconnectRace(handle: String) {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                stub.withCallCredentials(BearerToken(it)).disconnectRaceData(
+                    MeringueAdmin.RaceDataConnectionRequest.newBuilder()
+                        .setHandle(handle)
+                        .build()
+                )
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+
+                log.error("grpc exception", e)
+            }
+        }
+    }
+
+    private suspend fun authenticate(stub: AdminServiceGrpcKt.AdminServiceCoroutineStub) {
         if (bearerToken == null) {
             log.info("authenticating via admin api")
             val authRequest = MeringueAdmin.AuthRequest.newBuilder()
-                .setUsername(adminUsername)
-                .setPassword(adminPassword)
+                .setUsername(adminCreds.adminUsername)
+                .setPassword(adminCreds.adminPassword)
                 .build()
             val authResponse = stub.auth(authRequest)
             log.info("authenticated ok")
             this.bearerToken = authResponse.bearerToken
         }
-        this.bearerToken?.let {
-            return stub.withCallCredentials(BearerToken(it)).listRaceDataConnections(Empty.getDefaultInstance())
-        }
-        throw RuntimeException("bad shizzle")
     }
 
     suspend fun getRaceField(track: String) : CarData.RaceFieldResponse {
@@ -158,6 +276,16 @@ class MeringueConnector {
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(MeringueConnector::class.java)
+    }
+
+    override fun resolveException(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        handler: Any?,
+        ex: java.lang.Exception
+    ): ModelAndView? {
+        log.warn("need to handle this ", ex)
+        return null
     }
 }
 

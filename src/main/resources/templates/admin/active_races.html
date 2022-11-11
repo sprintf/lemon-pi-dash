@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Lemon-Pi Live Race List</h1>
+Connecting to ${trackName}
+<table>
+    <thead>
+    <tr>
+        <th> Event </th>
+        <th> Place </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${races.empty}">
+        <td colspan="2"> No Races Available </td>
+    </tr>
+    <tr th:each="race : ${races}">
+        <td><span th:text="${race.eventName}"> Event </span></td>
+        <td><span th:text="${race.trackName}"> Place </span></td>
+        <td><span><a th:href="@{/admin/connect(trackCode=${trackCode},provider=${race.provider},providerId=${race.raceId})}">Connect</a> </span></td>
+
+        <td><span th:text="${race.provider}"> Prov </span></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
