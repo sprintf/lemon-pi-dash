@@ -127,6 +127,43 @@ class MeringueConnector : HandlerExceptionResolver {
         throw RuntimeException("bad shizzle")
     }
 
+    suspend fun listConnectedCars(trackCode: String) : List<String> {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                val request = MeringueAdmin.ConnectedCarRequest.newBuilder()
+                    .setTrackCode(trackCode)
+                    .build()
+                return stub.withCallCredentials(BearerToken(it)).listConnectedCars(request).carNumberList.toList()
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+        throw RuntimeException("bad shizzle")
+    }
+
+    suspend fun sendDriverMessage(trackCode: String, carNumber: String, message: String) {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                val request = MeringueAdmin.DriverMessageRequest.newBuilder()
+                    .setTrackCode(trackCode)
+                    .setCarNumber(carNumber)
+                    .setMessage(message)
+                    .build()
+                stub.withCallCredentials(BearerToken(it)).sendDriverMessage(request)
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+    }
+
     suspend fun connectToRace(
         trackCode: String,
         providerName: String,

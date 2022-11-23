@@ -4,12 +4,18 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.ui.ModelMap
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.ModelAndView
 import javax.servlet.http.Cookie
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
@@ -32,6 +38,9 @@ class WebController {
 
     @Autowired
     lateinit var meringue: MeringueConnector
+
+    @Autowired
+    var env: Environment? = null
 
     @Value("\${mapsApiKey}")
     lateinit var mapsApiKey:String
@@ -59,11 +68,15 @@ class WebController {
     }
 
     @PostMapping("/doLogin")
-    suspend fun login(@ModelAttribute request: LoginData, response: HttpServletResponse, model: Model): ModelAndView {
+    suspend fun login(@ModelAttribute rq: LoginData, request: HttpServletRequest, response: HttpServletResponse, model: Model): ModelAndView {
         log.info("login request")
-        if (request.username == adminCreds.adminUsername &&
-                request.password == adminCreds.adminPassword) {
-            response.addCookie(Cookie("sessionId", authService.createTokenForUser(request.username)))
+        if (rq.username == adminCreds.adminUsername &&
+                rq.password == adminCreds.adminPassword) {
+            response.addCookie(Cookie("sessionId", authService.createTokenForUser(rq.username)).apply {
+                val isDev = env?.activeProfiles?.contains("dev")?:false
+                this.secure = !isDev
+                this.maxAge = 3600 * 48 // 2 days
+            })
             return ModelAndView("redirect:/admin/track_list", ModelMap())
         }
         return ModelAndView("redirect:/auth", ModelMap())
@@ -107,6 +120,48 @@ class WebController {
         log.info("called disconnect with $handle")
         meringue.disconnectRace(handle)
         return ModelAndView("redirect:/admin/track_list", ModelMap())
+    }
+
+    @GetMapping("/admin/car_message")
+    suspend fun carMessage(@RequestParam(name="track") trackCode: String,
+                            model: Model) : ModelAndView {
+        if (trackLoader.isValidTrackCode(trackCode)) {
+            return ModelAndView("/admin/car_message", buildCarMessageContext(trackCode))
+        }
+        return ModelAndView("error")
+    }
+
+    private suspend fun buildCarMessageContext(trackCode: String): MutableMap<String, Any> {
+        val model = mutableMapOf<String, Any>()
+        model["trackName"] = trackLoader.codeToName(trackCode)
+        model["trackCode"] = trackCode
+        val listConnectedCars = meringue.listConnectedCars(trackCode)
+        model["cars"] = listConnectedCars
+        model["disabled"] = listConnectedCars.isEmpty()
+        return model
+    }
+
+    data class CarMessageFormData(
+        val trackCode: String,
+        val carNumber: String,
+        var message: String
+    )
+
+    @PostMapping("/admin/car_message", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
+    suspend fun carMessageHandler(formData: CarMessageFormData) : ModelAndView {
+        if (trackLoader.isValidTrackCode(formData.trackCode)) {
+            if (formData.carNumber.isEmpty()) {
+                return ModelAndView("error")
+            }
+            if (formData.message.isEmpty()) {
+                return ModelAndView("error")
+            }
+            meringue.sendDriverMessage(formData.trackCode, formData.carNumber, formData.message)
+            val context = buildCarMessageContext(formData.trackCode)
+            context["message"] = "message sent"
+            return ModelAndView("/admin/car_message", context)
+        }
+        return ModelAndView("error")
     }
 
     companion object {

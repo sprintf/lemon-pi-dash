@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>Dash Admin Race List</title>
+</head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+<body>
+  <h1>🍋 Lemon-Pi Dash 🍋 : Car Messaging</h1>
+  Track : <span th:text="${trackName}">some track name</span>
+  <div th:text="${message}"></div>
+  <form action="/admin/car_message" method="post">
+
+      <input type="hidden" name="trackCode" th:value="${trackCode}"/>
+      <select name="carNumber">
+          <option th:each="car : ${cars}" th:value="${car}" th:text="${car}"></option>
+      </select>
+      <input type="text" name="message" maxlength="24">
+      <button type="submit" th:disabled="${disabled}">send</button>
+  </form>
+
+</body>
+</html>
