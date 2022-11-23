@@ -21,6 +21,10 @@ repositories {
 	mavenCentral()
 }
 
+extra["springCloudGcpVersion"] = "2.0.6"
+extra["springCloudVersion"] = "2020.0.4"
+extra["gcpLibrariesVersion"] = "26.1.4"
+
 dependencies {
 	implementation(project(":lemon-pi-protos"))
 
@@ -38,11 +42,21 @@ dependencies {
 	implementation("io.grpc:grpc-kotlin-stub:0.1.5")
 	implementation("jakarta.validation:jakarta.validation-api")
 	implementation("org.hibernate.validator:hibernate-validator")
+	implementation("com.google.cloud:google-cloud-firestore")
 
 	runtimeOnly("io.grpc:grpc-okhttp:${grpcVersion}")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("io.mockk:mockk:1.12.2")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom("com.google.cloud:spring-cloud-gcp-dependencies:${property("springCloudGcpVersion")}")
+		mavenBom("com.google.cloud:libraries-bom:${property("gcpLibrariesVersion")}")
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+	}
 }
 
 tasks.withType<KotlinCompile> {

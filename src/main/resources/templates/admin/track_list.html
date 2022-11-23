@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <title>Dash Admin Race List</title>
 </head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 <body>
-  <h1>Lemon-Pi Track List</h1>
+  <h1>🍋 Lemon-Pi Dash 🍋 : Track List</h1>
   <table>
       <thead>
       <tr>
@@ -28,7 +30,10 @@
               </span>
           </td>
           <td>
-              <a th:href="@{/live_track_map(track=${track.trackCode})}" target="_blank"><img src="/map.png" width="64" height="64"></a>
+              <a th:href="@{/live_track_map(track=${track.trackCode})}" target="_blank"><img src="/map.png" width="48" height="48"></a>
+          </td>
+          <td>
+              <a th:href="@{/admin/car_message(track=${track.trackCode})}">Car Comms</a>
           </td>
       </tr>
       </tbody>

@@ -8,7 +8,6 @@ import javax.servlet.Filter
 import javax.servlet.FilterChain
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
-import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -20,13 +19,12 @@ class RequestFilter : Filter {
     lateinit var authService: AuthService
 
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
-        var httpRequest = request as HttpServletRequest
-        var httpResponse = response as HttpServletResponse
+        val httpRequest = request as HttpServletRequest
         if (httpRequest.servletPath.startsWith("/admin")) {
             val sessionCookie = Arrays.stream(httpRequest.cookies).
                 filter { it.name == "sessionId"}.findFirst()
             if (!sessionCookie.isPresent || !authService.isTokenValid(sessionCookie.get().value)) {
-                response.sendRedirect("/login")
+                response.sendRedirect("/auth")
             }
         }
         chain?.doFilter(request, response)
