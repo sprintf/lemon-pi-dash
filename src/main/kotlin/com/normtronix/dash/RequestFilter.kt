@@ -20,11 +20,12 @@ class RequestFilter : Filter {
 
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
         val httpRequest = request as HttpServletRequest
+        val httpResponse = response as HttpServletResponse
         if (httpRequest.servletPath.startsWith("/admin")) {
             val sessionCookie = Arrays.stream(httpRequest.cookies).
                 filter { it.name == "sessionId"}.findFirst()
             if (!sessionCookie.isPresent || !authService.isTokenValid(sessionCookie.get().value)) {
-                response.sendRedirect("/auth")
+                httpResponse.sendRedirect("/auth")
             }
         }
         chain?.doFilter(request, response)
