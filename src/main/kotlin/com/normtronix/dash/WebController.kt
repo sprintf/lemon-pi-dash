@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.ModelAndView
+import java.util.*
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -63,7 +64,12 @@ class WebController {
     }
 
     @GetMapping("/auth")
-    fun auth(model: Model): String {
+    fun auth(request: HttpServletRequest, model: Model): String {
+        val sessionCookie = Arrays.stream(request.cookies)
+                .filter { it.name == "sessionId"}.findFirst()
+        if (sessionCookie.isPresent && authService.isTokenValid(sessionCookie.get().value)) {
+            return "redirect:/admin/track_list"
+        }
         return "auth"
     }
 
