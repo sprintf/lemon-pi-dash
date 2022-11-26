@@ -65,7 +65,8 @@ class WebController {
 
     @GetMapping("/auth")
     fun auth(request: HttpServletRequest, model: Model): String {
-        val sessionCookie = Arrays.stream(request.cookies)
+
+        val sessionCookie = Arrays.stream(request.cookies ?: emptyArray())
                 .filter { it.name == "sessionId"}.findFirst()
         if (sessionCookie.isPresent && authService.isTokenValid(sessionCookie.get().value)) {
             return "redirect:/admin/track_list"

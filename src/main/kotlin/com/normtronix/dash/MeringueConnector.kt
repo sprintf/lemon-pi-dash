@@ -164,6 +164,43 @@ class MeringueConnector : HandlerExceptionResolver {
         }
     }
 
+    suspend fun resetFastLapTime(trackCode: String, carNumber: String) {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                val request = MeringueAdmin.ResetFastLapTimeRequest.newBuilder()
+                    .setTrackCode(trackCode)
+                    .setCarNumber(carNumber)
+                    .build()
+                stub.withCallCredentials(BearerToken(it)).resetFastLapTime(request)
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+    }
+
+    suspend fun setTargetTime(trackCode: String, carNumber: String, targetTimeSec: Int) {
+        val channel = getGrpcChannelForTrack("all")
+        val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
+        authenticate(stub)
+        this.bearerToken?.let {
+            try {
+                val request = MeringueAdmin.SetTargetLapTimeRequest.newBuilder()
+                    .setTrackCode(trackCode)
+                    .setCarNumber(carNumber)
+                    .setTargetTimeSeconds(targetTimeSec)
+                    .build()
+                stub.withCallCredentials(BearerToken(it)).setTargetLapTime(request)
+            } catch (e: StatusException) {
+                handleExpiredToken(e)
+                log.error("grpc exception", e)
+            }
+        }
+    }
+
     suspend fun connectToRace(
         trackCode: String,
         providerName: String,
