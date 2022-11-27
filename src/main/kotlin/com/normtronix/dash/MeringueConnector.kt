@@ -145,7 +145,7 @@ class MeringueConnector : HandlerExceptionResolver {
         throw RuntimeException("bad shizzle")
     }
 
-    suspend fun sendDriverMessage(trackCode: String, carNumber: String, message: String) {
+    suspend fun sendDriverMessage(trackCode: String, carNumber: String, message: String): Boolean {
         val channel = getGrpcChannelForTrack("all")
         val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
         authenticate(stub)
@@ -156,15 +156,16 @@ class MeringueConnector : HandlerExceptionResolver {
                     .setCarNumber(carNumber)
                     .setMessage(message)
                     .build()
-                stub.withCallCredentials(BearerToken(it)).sendDriverMessage(request)
+                return stub.withCallCredentials(BearerToken(it)).sendDriverMessage(request).value
             } catch (e: StatusException) {
                 handleExpiredToken(e)
                 log.error("grpc exception", e)
             }
         }
+        return false
     }
 
-    suspend fun resetFastLapTime(trackCode: String, carNumber: String) {
+    suspend fun resetFastLapTime(trackCode: String, carNumber: String): Boolean {
         val channel = getGrpcChannelForTrack("all")
         val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
         authenticate(stub)
@@ -174,15 +175,16 @@ class MeringueConnector : HandlerExceptionResolver {
                     .setTrackCode(trackCode)
                     .setCarNumber(carNumber)
                     .build()
-                stub.withCallCredentials(BearerToken(it)).resetFastLapTime(request)
+                return stub.withCallCredentials(BearerToken(it)).resetFastLapTime(request).value
             } catch (e: StatusException) {
                 handleExpiredToken(e)
                 log.error("grpc exception", e)
             }
         }
+        return false
     }
 
-    suspend fun setTargetTime(trackCode: String, carNumber: String, targetTimeSec: Int) {
+    suspend fun setTargetTime(trackCode: String, carNumber: String, targetTimeSec: Int): Boolean {
         val channel = getGrpcChannelForTrack("all")
         val stub = AdminServiceGrpcKt.AdminServiceCoroutineStub(channel)
         authenticate(stub)
@@ -193,12 +195,13 @@ class MeringueConnector : HandlerExceptionResolver {
                     .setCarNumber(carNumber)
                     .setTargetTimeSeconds(targetTimeSec)
                     .build()
-                stub.withCallCredentials(BearerToken(it)).setTargetLapTime(request)
+                return stub.withCallCredentials(BearerToken(it)).setTargetLapTime(request).value
             } catch (e: StatusException) {
                 handleExpiredToken(e)
                 log.error("grpc exception", e)
             }
         }
+        return false
     }
 
     suspend fun connectToRace(

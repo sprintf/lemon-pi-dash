@@ -5,49 +5,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import java.text.ParseException
 import java.util.regex.Pattern
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
-data class SlackEvent(
-    val type: String,
-    val event_ts: Double,
-    val user: String
-)
-
-data class SlackAuthorization(
-    val enterprise_id: String,
-    val team_id: String,
-    val user_id: String,
-    val is_bot: Boolean
-)
-
-data class SlackRequest(
-    val token: String,
-    val type: String,
-
-    // just for challenge
-    val challenge: String?,
-
-    // other general fields
-    val team_id: String?,
-    val api_app_id: String?,
-    val event: SlackEvent?,
-    val authed_users: List<String>?,
-    val authed_teams: List<String>?,
-    val authorizations: List<SlackAuthorization>?,
-    val event_context: String?,
-    val event_id: String?,
-    val event_time: Int?
-
-)
-
-data class SlackResponse(
-    val challenge: String?
-)
 
 data class SlackCommand(
     val token: String,
@@ -73,35 +33,12 @@ class SlackController {
     @Autowired
     lateinit var meringue: MeringueConnector
 
-    @PostMapping("/slack")
-    @ResponseBody
-    suspend fun handleRequest(@RequestBody rq: SlackRequest, request: HttpServletRequest, response: HttpServletResponse, model: Model): SlackResponse {
-        log.info("handling slack request $rq")
-        if (rq.api_app_id != "A046XRKCGN7") {
-            throw RuntimeException("not from Lemon-Pi")
-        }
-        // todo : check its for us maybe
-        when (rq.type) {
-            "url_verification" -> {
-                return SlackResponse(rq.challenge)
-            }
-            "event_callback" -> {
-
-            }
-            "ssl_check" -> {
-                return SlackResponse(null)
-            }
-            else -> { }
-        }
-        return SlackResponse(null)
-    }
-
     @PostMapping("/slack-command")
     @ResponseBody
     suspend fun handleCommand(rq: SlackCommand): ResponseEntity<SlackCommandResponse> {
         log.info("handling command $rq")
         if (rq.api_app_id != "A046XRKCGN7") {
-            throw RuntimeException("not from Lemon-Pi")
+            throw RuntimeException("not from Lemon-Pi Slack Integration")
         }
         when (rq.command) {
             "/reset-fast-lap" -> {
@@ -113,13 +50,20 @@ class SlackController {
                         )
                     )
                 }
-                meringue.resetFastLapTime("thil", "8")
-                return ResponseEntity.ok(
-                    SlackCommandResponse(
-                        "in_channel",
-                         "fast lap reset sent"
-                    )
-                )
+                return when (meringue.resetFastLapTime("thil", "8")) {
+                    true -> {
+                        ResponseEntity.ok(SlackCommandResponse(
+                            "in_channel",
+                            "fast lap reset sent (and probably delivered)"
+                        ))
+                    }
+                    else -> {
+                        ResponseEntity.ok(SlackCommandResponse(
+                            "in_channel",
+                            "Nopety-nope. Car not connected, or something went wonky"
+                        ))
+                    }
+                }
             }
             "/set-target-time" -> {
                 if (rq.text == "help") {
@@ -132,13 +76,24 @@ class SlackController {
                 }
                 try {
                     getTimeInSecs(rq.text).apply {
-                        meringue.setTargetTime("thil", "8", this)
-                        return ResponseEntity.ok(
-                            SlackCommandResponse(
-                                "in_channel",
-                                "target time sent"
-                            )
-                        )
+                        return when(meringue.setTargetTime("thil", "8", this)) {
+                            true -> {
+                                ResponseEntity.ok(
+                                    SlackCommandResponse(
+                                        "in_channel",
+                                        "target time sent (and probably delivered)"
+                                    )
+                                )
+                            }
+                            else -> {
+                                ResponseEntity.ok(
+                                    SlackCommandResponse(
+                                        "in_channel",
+                                        "Failed. Car not online or something else wonky. Might be worth a retry."
+                                    )
+                                )
+                            }
+                        }
                     }
                 } catch (e: ParseException) {
                     return ResponseEntity.ok(
@@ -158,13 +113,24 @@ class SlackController {
                         )
                     )
                 }
-                meringue.sendDriverMessage("thil", "8", rq.text)
-                return ResponseEntity.ok(
-                    SlackCommandResponse(
-                        "in_channel",
-                        "message sent to driver"
-                    )
-                )
+                return when(meringue.sendDriverMessage("thil", "8", rq.text)) {
+                    true -> {
+                        ResponseEntity.ok(
+                            SlackCommandResponse(
+                                "in_channel",
+                                "Message sent to driver (and probably delivered, but not a chance they saw it)"
+                            )
+                        )
+                    }
+                    else -> {
+                        ResponseEntity.ok(
+                            SlackCommandResponse(
+                                "in_channel",
+                                "Yeah ... not so much. Don't think the car is online. You could try again in a few."
+                            )
+                        )
+                    }
+                }
             }
             else -> {
                 return ResponseEntity.ok(
