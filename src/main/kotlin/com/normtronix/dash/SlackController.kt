@@ -98,13 +98,13 @@ class SlackController {
 
     @PostMapping("/slack-command")
     @ResponseBody
-    suspend fun handleCommand(@RequestBody rq: SlackCommand): ResponseEntity<SlackCommandResponse> {
+    suspend fun handleCommand(rq: SlackCommand): ResponseEntity<SlackCommandResponse> {
         log.info("handling command $rq")
         if (rq.api_app_id != "A046XRKCGN7") {
             throw RuntimeException("not from Lemon-Pi")
         }
         when (rq.command) {
-            "reset-fast-lap" -> {
+            "/reset-fast-lap" -> {
                 if (rq.text == "help") {
                     return ResponseEntity.ok(
                         SlackCommandResponse(
@@ -116,12 +116,12 @@ class SlackController {
                 meringue.resetFastLapTime("thil", "8")
                 return ResponseEntity.ok(
                     SlackCommandResponse(
-                        "ephemeral",
+                        "in_channel",
                          "fast lap reset sent"
                     )
                 )
             }
-            "set-target-time" -> {
+            "/set-target-time" -> {
                 if (rq.text == "help") {
                     return ResponseEntity.ok(
                         SlackCommandResponse(
