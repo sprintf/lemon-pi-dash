@@ -149,6 +149,23 @@ class SlackController {
                     )
                 }
             }
+            "/send-driver-message" -> {
+                if (rq.text == "help") {
+                    return ResponseEntity.ok(
+                        SlackCommandResponse(
+                            "ephemeral",
+                            "sends a text message to the driver. e.g. /send-driver-message pit in 3 laps"
+                        )
+                    )
+                }
+                meringue.sendDriverMessage("thil", "8", rq.text)
+                return ResponseEntity.ok(
+                    SlackCommandResponse(
+                        "in_channel",
+                        "message sent to driver"
+                    )
+                )
+            }
             else -> {
                 return ResponseEntity.ok(
                     SlackCommandResponse(
