@@ -3,6 +3,7 @@ package com.normtronix.dash
 import com.google.cloud.firestore.Firestore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.Scheduled
@@ -35,7 +36,7 @@ private const val CAR_NUMBER = "car_number"
 private const val TRACK_CODE = "track_code"
 
 @Controller
-class SlackController {
+class SlackController() : InitializingBean {
 
     @Autowired
     lateinit var meringue: MeringueConnector
@@ -45,10 +46,14 @@ class SlackController {
 
     val slackAppKey = mutableMapOf<String, TrackAndCar>()
 
+    override fun afterPropertiesSet() {
+        loadSlackKeys()
+    }
+
     @Scheduled(fixedDelayString = "5", timeUnit = TimeUnit.MINUTES)
     internal fun loadSlackKeys() {
         db.collection("lemon_pi_dash_slack")?.get()?.get()?.documents?.forEach {
-            log.info("loaded $it")
+            log.info("loaded ${it.id} with ${it[TRACK_CODE]} : ${it[CAR_NUMBER]}")
             if (it.contains(CAR_NUMBER) &&
                 it.contains(TRACK_CODE)) {
                 slackAppKey[it.id] =
