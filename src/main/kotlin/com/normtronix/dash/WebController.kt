@@ -133,7 +133,7 @@ class WebController {
     suspend fun carMessage(@RequestParam(name="track") trackCode: String,
                             model: Model) : ModelAndView {
         if (trackLoader.isValidTrackCode(trackCode)) {
-            return ModelAndView("/admin/car_message", buildCarMessageContext(trackCode))
+            return ModelAndView("admin/car_message", buildCarMessageContext(trackCode))
         }
         return ModelAndView("error")
     }
@@ -166,7 +166,7 @@ class WebController {
             meringue.sendDriverMessage(formData.trackCode, formData.carNumber, formData.message)
             val context = buildCarMessageContext(formData.trackCode)
             context["message"] = "message sent"
-            return ModelAndView("/admin/car_message", context)
+            return ModelAndView("admin/car_message", context)
         }
         return ModelAndView("error")
     }
