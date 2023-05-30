@@ -22,7 +22,7 @@ class RequestFilter : Filter {
         val httpRequest = request as HttpServletRequest
         val httpResponse = response as HttpServletResponse
         if (httpRequest.servletPath.startsWith("/admin")) {
-            val sessionCookie = Arrays.stream(httpRequest.cookies).
+            val sessionCookie = Arrays.stream(httpRequest.cookies?: emptyArray()).
                 filter { it.name == "sessionId"}.findFirst()
             if (!sessionCookie.isPresent || !authService.isTokenValid(sessionCookie.get().value)) {
                 httpResponse.sendRedirect("/auth")
