@@ -10,26 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: remove symlink to lemon-pi-protos
-        run: rm ./lemon-pi-protos
-      - name: Checkout Protos
-        uses: actions/checkout@v2
-        with:
-          repository: sprintf/lemon-pi-protos
-          path: './lemon-pi-protos'
+      - uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
           java-version: 17
       - name: Validate Gradle
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/actions/wrapper-validation@v3
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build
+        uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew bootJar
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Jar
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: bootJar
           path: build/libs/*.jar
