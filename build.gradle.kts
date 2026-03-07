@@ -6,15 +6,15 @@ val protobufVersion: String by project
 plugins {
 	idea
 	application
-	id("org.springframework.boot") version "2.6.4"
-	id("io.spring.dependency-management") version "1.0.11.RELEASE"
-	kotlin("jvm")
-	kotlin("plugin.spring")
+	id("org.springframework.boot") version "3.2.0"
+	id("io.spring.dependency-management") version "1.1.4"
+	kotlin("jvm") version "1.9.21"
+	kotlin("plugin.spring") version "1.9.21"
 }
 
 group = "com.normtronix"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
 	mavenCentral()
@@ -28,12 +28,12 @@ repositories {
 	}
 }
 
-extra["springCloudGcpVersion"] = "2.0.6"
-extra["springCloudVersion"] = "2020.0.4"
-extra["gcpLibrariesVersion"] = "26.1.4"
+extra["springCloudGcpVersion"] = "5.0.0"
+extra["springCloudVersion"] = "2023.0.0"
+extra["gcpLibrariesVersion"] = "26.32.0"
 
 dependencies {
-	implementation("com.normtronix:lemon-pi-protos:1.0")
+	implementation("com.normtronix:lemon-pi-protos:2.0")
 
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -41,14 +41,15 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.1")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 
 	implementation("io.grpc:grpc-protobuf:${grpcVersion}")
 	implementation("io.grpc:grpc-stub:${grpcVersion}")
 	implementation("com.google.protobuf:protobuf-java:${protobufVersion}")
 
-	implementation("io.grpc:grpc-kotlin-stub:0.1.5")
+	implementation("io.grpc:grpc-kotlin-stub:1.4.1")
+	compileOnly("jakarta.annotation:jakarta.annotation-api:1.3.5") // Java 9+ compatibility - Do NOT update to 2.0.0
 	implementation("jakarta.validation:jakarta.validation-api")
 	implementation("org.hibernate.validator:hibernate-validator")
 	implementation("com.google.cloud:google-cloud-firestore")
@@ -75,10 +76,18 @@ dependencyManagement {
 	}
 }
 
+configurations.all {
+	resolutionStrategy.eachDependency {
+		if (requested.group == "io.grpc" && requested.name != "grpc-kotlin-stub") {
+			useVersion(grpcVersion)
+		}
+	}
+}
+
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "11"
+		jvmTarget = "17"
 	}
 }
 
