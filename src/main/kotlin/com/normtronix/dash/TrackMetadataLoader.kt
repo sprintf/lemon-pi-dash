@@ -3,6 +3,7 @@ package com.normtronix.dash
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
 import java.net.URL
@@ -48,7 +49,7 @@ class TrackMetaDataLoader {
     private fun loadData() {
         log.info("loading track data")
         val yaml = URL("https://storage.googleapis.com/perplexus/public/tracks.yaml").readText()
-        val trackList: Tracks = Yaml(Constructor(Tracks::class.java)).load(yaml)
+        val trackList: Tracks = Yaml(Constructor(Tracks::class.java, LoaderOptions())).load(yaml)
         trackList.tracks.stream().forEach {
             trackCodes.add(it.code)
             trackMap[it.code] = it
@@ -90,6 +91,7 @@ class TrackMetaDataLoader {
         var radio_sync_list: Any = Any()
         var radio_sync_coords: String = ""
         var radio_sync_direction: String = ""
+        var sectors: Any = Any()
         var hidden: Boolean = false
         var reversed: Boolean = false
     }

@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.servlet.HandlerExceptionResolver
 import org.springframework.web.servlet.ModelAndView
 import java.util.concurrent.Executor
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 
 @Service
@@ -346,7 +346,7 @@ class MeringueConnector : HandlerExceptionResolver {
         }
     }
 
-    inline class Waiter(private val channel: Channel<Unit> = Channel<Unit>(0)) {
+    @JvmInline value class Waiter(private val channel: Channel<Unit> = Channel<Unit>(0)) {
         suspend fun doWait() { channel.receive() }
         fun doNotify() { channel.trySend(Unit) }
     }

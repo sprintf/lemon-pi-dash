@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.util.stream.Collectors
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.Size
 
 
 data class TimeResponse(val hour: Int, val minute: Int, val second: Int)
